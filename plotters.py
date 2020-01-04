@@ -4,6 +4,7 @@ import matplotlib.ticker as ticker
 import seaborn as sns
 
 from constants import *
+from cleaner import DataCleaner
 
 
 class CountsPlotDisplay:
@@ -54,21 +55,7 @@ class CountsPlotter:
 
     def __init__(self, tsv_path):
         self.display = None
-        self.df = pd.read_table(tsv_path)[
-            [REGION,
-             GENDER,
-             AGE,
-             BANDS_MUSIC,
-             BANDS_CHARA,
-             CHARACTERS,
-             CHARACTER_REASONS,
-             SONGS_ORIGINAL,
-             SONGS_COVER,
-             FRANCHISE_PARTICIPATION,
-             PLAY_STYLE,
-             OTHER_GAMES_IDOL,
-             OTHER_GAMES_RHYTHM]
-        ]  # Filter out unneeded data
+        self.df = DataCleaner.prepare_data_frame(tsv_path)
 
     def plot_music_band_by_age(self, display=None):
         self.display = CountsPlotDisplay(
@@ -146,7 +133,7 @@ class CountsPlotter:
             self,
             band_col
     ):
-        df = self._filter_age(self.df)
+        df = DataCleaner.filter_age(self.df)
         counts, counts_norm = self._group_counts_for_answer(
             df, stat_col=AGE, answer_col=band_col, answer_values=ALL_BANDS
         )
@@ -166,7 +153,7 @@ class CountsPlotter:
                 return self.sort_regions(c, c_norm, data_has_all=False)
 
         df = self.df.replace(to_replace="North Asia and Central Asia", value="North/Central Asia")
-        df = self._filter_region(df, show_all)
+        df = DataCleaner.filter_region(df, show_all)
         counts, counts_norm = self._group_counts_for_answer(
             df, stat_col=REGION, answer_col=band_col, answer_values=ALL_BANDS
         )
@@ -178,7 +165,7 @@ class CountsPlotter:
             self,
             band_col
     ):
-        df = self._filter_gender(self.df)
+        df = DataCleaner.filter_gender(self.df)
         counts, counts_norm = self._group_counts_for_answer(
             df, stat_col=GENDER, answer_col=band_col, answer_values=ALL_BANDS
         )
@@ -299,35 +286,6 @@ class CountsPlotter:
 
         return counts.reindex(region_sort_order), counts_normalized.reindex(region_sort_order)
 
-    @staticmethod
-    def _filter_gender(
-            df
-    ):
-        res = df[df[GENDER] != NO_RESPONSE]
-        res = res.dropna(subset=[GENDER])  # remove if gender is NaN
-        return res
-
-    @staticmethod
-    def _filter_age(
-            df
-    ):
-        res = df[df[AGE] != NO_RESPONSE]
-        res = res.dropna(subset=[AGE])  # remove if age is NaN
-        return res
-
-    @staticmethod
-    def _filter_region(
-            df,
-            keep_all_legal=True
-    ):
-        """
-        :param keep_all_legal: Whether to keep regions with low sample sizes or not
-        """
-        if not keep_all_legal:
-            keep_list = ["North America", "Southeast Asia", "Europe", "South America", "Oceania"]
-            df = df[df[REGION].isin(keep_list)]
-        return df.dropna(subset=[REGION])  # remove if region is NaN
-
     def _plot_group_counts_for_answer(
             self,
             counts,
@@ -372,24 +330,10 @@ class HeatMapPlotter:
     """
 
     def __init__(self, tsv_path):
-        self.df = pd.read_table(tsv_path)[
-            [REGION,
-             GENDER,
-             AGE,
-             BANDS_MUSIC,
-             BANDS_CHARA,
-             CHARACTERS,
-             CHARACTER_REASONS,
-             SONGS_ORIGINAL,
-             SONGS_COVER,
-             FRANCHISE_PARTICIPATION,
-             PLAY_STYLE,
-             OTHER_GAMES_IDOL,
-             OTHER_GAMES_RHYTHM]
-        ]  # Filter out unneeded data
+        self.df = DataCleaner.prepare_data_frame(tsv_path)
 
     def draw_heat_map(self):
-        df = self._filter_gender(self.df)
+        df = DataCleaner.filter_gender(self.df)
         likes_poppin_party = df[df[BANDS_MUSIC].str.contains("Poppin'Party")]
         pp_counts = pd.crosstab(likes_poppin_party[GENDER], likes_poppin_party[REGION], normalize="columns")
         print(pp_counts)
@@ -411,9 +355,3 @@ class HeatMapPlotter:
         b += 0.5  # Add 0.5 to the bottom
         t -= 0.5  # Subtract 0.5 from the top
         plt.ylim(b, t)  # update the ylim(bottom, top) values
-
-    @staticmethod
-    def _filter_gender(df):
-        res = df[df[GENDER] != NO_RESPONSE]
-        res = res.dropna(subset=[GENDER])  # remove if gender is NaN
-        return res
