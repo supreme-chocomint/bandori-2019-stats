@@ -12,14 +12,7 @@ def main():
     # plotter.plot_chara_band_by_gender()
 
     miner = AssociationMiner("responses.tsv")
-    filtered_itemsets = miner.find_sets()
-    rules = miner.find_rules(
-        metric="confidence",
-        metric_threshold=0.1,
-        max_consequents=2,
-        sort_by=["antecedent_len", "lift"],
-        sort_ascending=[True, False]
-    )
+    rules = miner.mine_favorite_characters()
 
 
 main()

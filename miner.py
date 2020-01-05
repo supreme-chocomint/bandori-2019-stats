@@ -16,42 +16,63 @@ class AssociationMiner:
             self,
             tsv_path
     ):
-        self.lists = self._reduce(DataCleaner.prepare_data_frame(tsv_path), [CHARACTERS], [ALL_CHARACTERS])
-        self.one_hot_df = self._transform_to_one_hot(self.lists)
-        self.itemsets = None
-        self.rules = None
+        self.df = DataCleaner.prepare_data_frame(tsv_path)
 
-    def find_sets(
-            self,
-            min_frequency=0.01,  # ~25 responses
-            remove_single_items=True
+    def mine_favorite_characters(self):
+        lists = self._reduce(self.df, [CHARACTERS], [ALL_CHARACTERS])
+        one_hot_df = self._transform_to_one_hot(lists)
+        raw_itemsets = self._find_sets(one_hot_df)
+        raw_rules = self._find_rules(raw_itemsets, metric="confidence", metric_threshold=0.3)
+        organized_rules = self._organize_rules(
+            raw_rules, max_consequents=2, sort_by=["antecedent_len", "lift"], sort_ascending=[True, False]
+        )
+        return organized_rules
+
+    @staticmethod
+    def _find_sets(
+            one_hot_df,
+            min_frequency=0.01  # ~25 responses
     ):
         """
         Finds frequent itemsets.
-        The original result of the search is saved as an attribute, and a filtered version
-        is returned by default. To get the original, turn off the argument flags or
-        access it directly as an object attribute.
-        Original result is saved because it is required for rule finding.
-
         FPGrowth algorithm used instead of Apriori because it can handle min_frequency=0.
-
         :param min_frequency: Float; threshold occurrence for a set to be considered "frequent"
+        """
+        itemsets = fpgrowth(one_hot_df, min_support=min_frequency, use_colnames=True)
+        return itemsets.sort_values(by=["support"], ascending=False)
+
+    @staticmethod
+    def _filter_itemsets(
+            itemsets,
+            remove_single_items=True
+    ):
+        """
+        Filters itemsets based on flags.
+        :param itemsets: DataFrame
         :param remove_single_items: Bool; whether to remove sets with one item or not
         """
-        self.itemsets = fpgrowth(self.one_hot_df, min_support=min_frequency, use_colnames=True)
-
         # Remove all sets with one item, because those are just the most popular choices
         if remove_single_items:
-            itemsets = self.itemsets.copy()
+            itemsets = itemsets.copy()
             itemsets["length"] = itemsets["itemsets"].apply(lambda x: len(x))
-            return itemsets[itemsets["length"] > 1].sort_values(by=["support"], ascending=False)
-        else:
-            return self.itemsets
+            return itemsets[itemsets["length"] > 1]
 
-    def find_rules(
-            self,
+    @staticmethod
+    def _find_rules(
+            itemsets,
             metric,
-            metric_threshold,
+            metric_threshold
+    ):
+        """
+        Uses itemsets attribute to find rules.
+        :param metric: "confidence" or "lift"
+        :param metric_threshold: Float, [0, 1]
+        """
+        return association_rules(itemsets, metric=metric, min_threshold=metric_threshold)
+
+    @staticmethod
+    def _organize_rules(
+            rules,
             min_antecedents=1,
             min_consequents=1,
             min_rule_length=2,
@@ -59,12 +80,11 @@ class AssociationMiner:
             max_consequents=None,
             max_rule_length=None,
             sort_by=None,
-            sort_ascending=None
+            sort_ascending=None,
     ):
         """
-        Uses itemsets attribute to find rules, and optionally filter those rules.
-        :param metric: "confidence" or "lift"
-        :param metric_threshold: Float, [0, 1]
+        Filter and sort.
+        :param rules: DataFrame
         :param min_antecedents: Int; min to keep
         :param min_consequents: Int; min to keep
         :param min_rule_length: Int; minimum length of antecedents + consequents to keep
@@ -80,10 +100,8 @@ class AssociationMiner:
         if sort_ascending is None:
             sort_ascending = ["False"]
 
-        self.rules = association_rules(self.itemsets, metric=metric, min_threshold=metric_threshold)
-
         # Make columns for applying filters and sorts
-        rules = self.rules.copy()
+        rules = rules.copy()
         rules["antecedent_len"] = rules["antecedents"].apply(lambda x: len(x))
         rules["consequent_len"] = rules["consequents"].apply(lambda x: len(x))
         rules["rule_len"] = rules.apply(lambda row: row.antecedent_len + row.consequent_len, axis=1)
@@ -158,9 +176,7 @@ class AssociationMiner:
             columns
     ):
         """
-        Remove quotes in column names, because Pandas doesn't like it
-        :param columns:
-        :return:
+        Remove quotes in column names, because Pandas doesn't like them
         """
         res = []
         for column in columns:
