@@ -19,14 +19,28 @@ class AssociationMiner:
         self.df = DataCleaner.prepare_data_frame(tsv_path)
 
     def mine_favorite_characters(self):
-        lists = self._reduce(self.df, [CHARACTERS], [ALL_CHARACTERS])
-        one_hot_df = self._transform_to_one_hot(lists)
-        raw_itemsets = self._find_sets(one_hot_df)
+        raw_itemsets = self._generate_frequent_itemsets([CHARACTERS], [ALL_CHARACTERS])
         raw_rules = self._find_rules(raw_itemsets, metric="confidence", metric_threshold=0.3)
         organized_rules = self._organize_rules(
             raw_rules, max_consequents=2, sort_by=["antecedent_len", "lift"], sort_ascending=[True, False]
         )
         return organized_rules
+
+    def _generate_frequent_itemsets(
+            self,
+            columns,
+            column_values,
+            min_frequency=0.01
+    ):
+        """
+        Uses the values of columns to generate frequent itemsets for association rule mining.
+        :param columns: List of column names to use
+        :param column_values: List; each element is itself a list, holding the legal values of the column
+        :param min_frequency: threshold frequency for set to be considered "frequent"
+        """
+        lists = self._reduce(self.df, columns, column_values)
+        one_hot_df = self._transform_to_one_hot(lists)
+        return self._find_sets(one_hot_df, min_frequency=min_frequency)
 
     @staticmethod
     def _find_sets(
