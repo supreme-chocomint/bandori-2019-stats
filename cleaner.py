@@ -9,7 +9,9 @@ class DataCleaner:
     """
 
     @staticmethod
-    def prepare_data_frame(tsv_path):
+    def prepare_data_frame(
+            tsv_path
+    ):
         df = pd.read_table(tsv_path)[
             [REGION,
              GENDER,
@@ -29,23 +31,36 @@ class DataCleaner:
         return df
 
     @staticmethod
+    def filter_invalids(
+            df,
+            column
+    ):
+        """
+        General method for removing rows with invalid values in a column.
+        :param df: DataFrame
+        :param column: name of column to check
+        """
+        return df.dropna(subset=[column])  # remove if NaN
+
+    @classmethod
     def filter_gender(
+            cls,
             df
     ):
         res = df[df[GENDER] != NO_RESPONSE]
-        res = res.dropna(subset=[GENDER])  # remove if gender is NaN
-        return res
+        return cls.filter_invalids(res, GENDER)
 
-    @staticmethod
+    @classmethod
     def filter_age(
+            cls,
             df
     ):
         res = df[df[AGE] != NO_RESPONSE]
-        res = res.dropna(subset=[AGE])  # remove if age is NaN
-        return res
+        return cls.filter_invalids(res, AGE)
 
-    @staticmethod
+    @classmethod
     def filter_region(
+            cls,
             df,
             keep_all_legal=True
     ):
@@ -56,4 +71,4 @@ class DataCleaner:
         if not keep_all_legal:
             keep_list = ["North America", "Southeast Asia", "Europe", "South America", "Oceania"]
             df = df[df[REGION].isin(keep_list)]
-        return df.dropna(subset=[REGION])  # remove if region is NaN
+        return cls.filter_invalids(df, REGION)
