@@ -12,7 +12,7 @@ def main():
     # plotter.plot_chara_band_by_gender()
 
     miner = AssociationMiner("responses.tsv")
-    rules = miner.mine_favorite_characters()
+    rules = miner.mine_favorite_band_members()
 
 
 main()

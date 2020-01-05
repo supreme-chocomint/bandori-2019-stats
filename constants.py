@@ -6,6 +6,13 @@ AGE = "How old are you?.1"
 PLAY_STYLE = "What is your preferred method of playing?"
 OTHER_GAMES_IDOL = "Do you play other idol-like games?"
 OTHER_GAMES_RHYTHM = "Do you play other rhythm games?"
+CHARACTER_POPIPA = "Who is your favorite girl in Poppin'Party?"
+CHARACTER_ROSELIA = "Who is your favorite girl in Roselia?"
+CHARACTER_RAS = "Who is your favorite girl in RAISE A SUILEN?"
+CHARACTER_AFTERGLOW = "Who is your favorite girl in Afterglow?"
+CHARACTER_PASUPARE = "Who is your favorite girl in Pastel*Palettes?"
+CHARACTER_HHW = "Who is your favorite girl in Hello, Happy World!?"
+CHARACTER_GURIGURI = "Who is your favorite girl in Glitter*Green?"
 
 # Multi-response columns/questions
 BANDS_MUSIC = "Which bands are your favorite based on music? (You may choose up to 2)"

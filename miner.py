@@ -19,12 +19,36 @@ class AssociationMiner:
         self.df = DataCleaner.prepare_data_frame(tsv_path)
 
     def mine_favorite_characters(self):
+        """
+        Mines for rules regarding all favorite characters.
+        Resulting rules are restricted to those with at most 2 consequents (to avoid too-specific data)
+        and confidence of at least 30% (making confidence too high makes rules too specific to individual people).
+        Result sorted by antecedent length (since single-item predictors probably more interesting) and lift.
+        :return:
+        """
         raw_itemsets = self._generate_frequent_itemsets([CHARACTERS], [ALL_CHARACTERS])
         raw_rules = self._find_rules(raw_itemsets, metric="confidence", metric_threshold=0.3)
-        organized_rules = self._organize_rules(
+        return self._organize_rules(
             raw_rules, max_consequents=2, sort_by=["antecedent_len", "lift"], sort_ascending=[True, False]
         )
-        return organized_rules
+
+    def mine_favorite_band_members(self):
+        """
+        Mines for rules regarding favorite character in each band.
+        All confidences are >30% and rules are sorted by lift.
+        """
+        raw_itemsets = self._generate_frequent_itemsets(
+            [CHARACTER_POPIPA,
+             CHARACTER_AFTERGLOW,
+             CHARACTER_GURIGURI,
+             CHARACTER_HHW,
+             CHARACTER_PASUPARE,
+             CHARACTER_RAS,
+             CHARACTER_ROSELIA],
+            [[ALL_CHARACTERS] * 7][0]  # list of 7 CHARACTER lists
+        )
+        raw_rules = self._find_rules(raw_itemsets, metric="confidence", metric_threshold=0.3)
+        return self._organize_rules(raw_rules, sort_by=["lift"], sort_ascending=[False])
 
     def _generate_frequent_itemsets(
             self,
