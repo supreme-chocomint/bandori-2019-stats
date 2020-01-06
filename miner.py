@@ -24,19 +24,16 @@ class AssociationMiner:
         Resulting rules are restricted to those with at most 2 consequents (to avoid too-specific data)
         and confidence of at least 30% (making confidence too high makes rules too specific to individual people).
         Result sorted by antecedent length (since single-item predictors probably more interesting) and lift.
-        :return:
+        :return Rules
         """
         raw_itemsets = self._generate_frequent_itemsets([CHARACTERS], [ALL_CHARACTERS])
-        rules = self._find_rules(raw_itemsets, metric="confidence", metric_threshold=0.3)
-        rules.organize(
-            max_antecedents=1, sort_by=["lift"], sort_ascending=[False]
-        )
-        return rules
+        return self._generate_association_rules(raw_itemsets)
 
     def mine_favorite_band_members(self):
         """
         Mines for rules regarding favorite character in each band.
         All confidences are >30% and rules are sorted by lift.
+        :return Rules
         """
         raw_itemsets = self._generate_frequent_itemsets(
             [CHARACTER_POPIPA,
@@ -48,9 +45,7 @@ class AssociationMiner:
              CHARACTER_ROSELIA],
             [[ALL_CHARACTERS] * 7][0]  # list of 7 CHARACTER lists
         )
-        rules = self._find_rules(raw_itemsets, metric="confidence", metric_threshold=0.3)
-        rules.organize(max_antecedents=1, sort_by=["lift"], sort_ascending=[False])
-        return rules
+        return self._generate_association_rules(raw_itemsets)
 
     def _generate_frequent_itemsets(
             self,
@@ -68,6 +63,19 @@ class AssociationMiner:
         lists = self._reduce(self.df, columns, column_values)
         one_hot_df = self._transform_to_one_hot(lists)
         return self._find_sets(one_hot_df, min_frequency=min_frequency)
+
+    def _generate_association_rules(
+            self,
+            itemsets
+    ):
+        """
+        Uses frequent itemsets to generate rules with 30% confidence, 1 antecedent, and sorted by lift.
+        :param itemsets: DataFrame
+        :return: Rules
+        """
+        rules = self._find_rules(itemsets, metric="confidence", metric_threshold=0.3)
+        rules.organize(max_antecedents=1, sort_by=["lift"], sort_ascending=[False])
+        return rules
 
     @staticmethod
     def _find_sets(
