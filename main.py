@@ -13,7 +13,7 @@ def main():
 
     miner = AssociationMiner("responses.tsv")
     rules = miner.mine_favorite_characters()
-    results = miner.search_rules(rules, one_of=["Hikawa"], location="antecedents")
+    results = rules.search(one_of=["Hikawa"], location="antecedents")
 
 
 main()
