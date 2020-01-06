@@ -1,5 +1,6 @@
 from plotters import CountsPlotter, CountsPlotDisplay
 from miner import AssociationMiner
+from cleaner import DataCleaner
 from constants import *
 
 
@@ -13,7 +14,7 @@ def main():
     # plotter.plot_chara_band_by_gender()
 
     miner = AssociationMiner("responses.tsv")
-    rules = miner.mine_favorite_character_reasons()
+    miner.mine_gender_favorite_characters()
 
 
 main()

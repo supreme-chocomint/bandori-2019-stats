@@ -18,34 +18,43 @@ class AssociationMiner:
     ):
         self.df = DataCleaner.prepare_data_frame(tsv_path)
 
+    def mine(
+            self,
+            columns,
+            column_values,
+            min_frequency=0.01  # ~25 responses
+    ):
+        """
+        Generic function to mine rules from responses.
+        :param columns: List of column names to consider.
+        :param column_values: List of column values each column can have (one list per column).
+        :param min_frequency: threshold frequency for itemset to be considered "frequent"
+        :return: Rules
+        """
+        raw_itemsets = self._generate_frequent_itemsets(columns, column_values, min_frequency)
+        return self._generate_association_rules(raw_itemsets)
+
     def mine_favorite_characters(self):
         """
         Mines for rules regarding all favorite characters.
-        Resulting rules are restricted to those with at most 2 consequents (to avoid too-specific data)
-        and confidence of at least 30% (making confidence too high makes rules too specific to individual people).
-        Result sorted by antecedent length (since single-item predictors probably more interesting) and lift.
         :return Rules
         """
-        raw_itemsets = self._generate_frequent_itemsets([CHARACTERS], [ALL_CHARACTERS])
-        return self._generate_association_rules(raw_itemsets)
+        return self.mine([CHARACTERS], [ALL_CHARACTERS])
 
     def mine_favorite_band_members(self):
         """
         Mines for rules regarding favorite character in each band.
-        All confidences are >30% and rules are sorted by lift.
         :return Rules
         """
-        raw_itemsets = self._generate_frequent_itemsets(
+        return self.mine(
             [CHARACTER_POPIPA,
              CHARACTER_AFTERGLOW,
              CHARACTER_GURIGURI,
              CHARACTER_HHW,
              CHARACTER_PASUPARE,
-             CHARACTER_RAS,
              CHARACTER_ROSELIA],
             [[ALL_CHARACTERS] * 7][0]  # list of 7 CHARACTER lists
         )
-        return self._generate_association_rules(raw_itemsets)
 
     def mine_favorite_character_reasons(
             self,
@@ -59,10 +68,8 @@ class AssociationMiner:
         if antecedent not in ["all", "character", "reason"]:
             raise ValueError("invalid antecedent argument: must be 'all', 'character', or 'reason'")
 
-        raw_itemsets = self._generate_frequent_itemsets(
-            [CHARACTERS, CHARACTER_REASONS], [ALL_CHARACTERS, ALL_CHARACTER_REASONS]
-        )
-        rules = Rules(self._generate_association_rules(raw_itemsets).search(one_of=ALL_CHARACTER_REASONS))
+        rules = self.mine([CHARACTERS, CHARACTER_REASONS], [ALL_CHARACTERS, ALL_CHARACTER_REASONS])
+        rules = Rules(rules.search(one_of=ALL_CHARACTER_REASONS))
 
         if antecedent == "all":
             return rules
@@ -71,11 +78,40 @@ class AssociationMiner:
         elif antecedent == "reason":
             return Rules(rules.search(one_of=ALL_CHARACTER_REASONS, location="antecedents"))
 
+    def mine_age_favorite_characters(self):
+        """
+        Mines for rules that predict age from favorite characters.
+        The reverse doesn't seem to predict anything useful (the predictions are just popular characters).
+        Since this is predicting age, the predictions are overwhelmingly 20-24yrs and 14-19yrs, since confidence
+        must be >30%, and less common age groups wouldn't make this threshold.
+        """
+        age_values = DataCleaner.filter_age(self.df)[AGE].unique().tolist()
+        table = self.mine(
+            [CHARACTERS, AGE], [ALL_CHARACTERS, age_values]
+        ).search(
+            one_of=age_values,
+            location="consequents"
+        )
+        return Rules(table)
+
+    def mine_gender_favorite_characters(self):
+        """
+        Mines for rules that predict gender from favorite characters.
+        """
+        gender_values = DataCleaner.filter_gender(self.df)[GENDER].unique().tolist()
+        table = self.mine(
+            [CHARACTERS, GENDER], [ALL_CHARACTERS, gender_values]
+        ).search(
+            one_of=gender_values,
+            location="consequents"
+        )
+        return Rules(table)
+
     def _generate_frequent_itemsets(
             self,
             columns,
             column_values,
-            min_frequency=0.01
+            min_frequency
     ):
         """
         Uses the values of columns to generate frequent itemsets for association rule mining.
@@ -94,6 +130,7 @@ class AssociationMiner:
     ):
         """
         Uses frequent itemsets to generate rules with 30% confidence, 1 antecedent, and sorted by lift.
+        If confidence is too high, rules are too specific to individual people, as opinions vary quite a bit.
         :param itemsets: DataFrame
         :return: Rules
         """
@@ -104,7 +141,7 @@ class AssociationMiner:
     @staticmethod
     def _find_sets(
             one_hot_df,
-            min_frequency=0.01  # ~25 responses
+            min_frequency
     ):
         """
         Finds frequent itemsets.
