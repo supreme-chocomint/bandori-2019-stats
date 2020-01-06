@@ -29,7 +29,7 @@ class AssociationMiner:
         raw_itemsets = self._generate_frequent_itemsets([CHARACTERS], [ALL_CHARACTERS])
         rules = self._find_rules(raw_itemsets, metric="confidence", metric_threshold=0.3)
         rules.organize(
-            max_consequents=2, sort_by=["antecedent_len", "lift"], sort_ascending=[True, False]
+            max_antecedents=1, sort_by=["lift"], sort_ascending=[False]
         )
         return rules
 
@@ -49,7 +49,7 @@ class AssociationMiner:
             [[ALL_CHARACTERS] * 7][0]  # list of 7 CHARACTER lists
         )
         rules = self._find_rules(raw_itemsets, metric="confidence", metric_threshold=0.3)
-        rules.organize(sort_by=["lift"], sort_ascending=[False])
+        rules.organize(max_antecedents=1, sort_by=["lift"], sort_ascending=[False])
         return rules
 
     def _generate_frequent_itemsets(
