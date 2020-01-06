@@ -50,6 +50,44 @@ class AssociationMiner:
         raw_rules = self._find_rules(raw_itemsets, metric="confidence", metric_threshold=0.3)
         return self._organize_rules(raw_rules, sort_by=["lift"], sort_ascending=[False])
 
+    def search_rules(
+            self,
+            rules,
+            one_of,
+            location="all"
+    ):
+        """
+        Filters out rules that don't match search condition.
+        E.g. if one_of=["Chisato", "Hina"], all rules with "Chisato" or "Hina" in antecedents or consequents
+        will be returned.
+
+        :param rules: DataFrame
+        :param one_of: List; each element is search term, with entire list being a disjunction/OR
+        :param location: "antecedents", "consequents", or "all"; where to look for search terms
+        :return: DataFrame
+        """
+        if location not in ["all", "antecedents", "consequents"]:
+            raise ValueError("invalid location argument: must be 'all', 'antecedents', or 'consequents'")
+
+        res = None
+        filter_partials = []
+        for term in one_of:
+
+            # Do filtering/search of term at specified locations
+            if location == "all":
+                filter_partials.append(rules[rules["antecedents"].astype(str).str.contains(term)])
+                filter_partials.append(rules[rules["consequents"].astype(str).str.contains(term)])
+            else:
+                filter_partials.append(rules[rules[location].astype(str).str.contains(term)])
+
+            # Union partial filter results to get final result
+            if res:
+                filter_partials.append(res)
+            res = pd.concat(filter_partials).drop_duplicates()
+            filter_partials = []
+
+        return self._organize_rules(res, sort_by=["lift"], sort_ascending=[False])
+
     def _generate_frequent_itemsets(
             self,
             columns,
@@ -61,6 +99,7 @@ class AssociationMiner:
         :param columns: List of column names to use
         :param column_values: List; each element is itself a list, holding the legal values of the column
         :param min_frequency: threshold frequency for set to be considered "frequent"
+        :return DataFrame
         """
         lists = self._reduce(self.df, columns, column_values)
         one_hot_df = self._transform_to_one_hot(lists)
@@ -75,6 +114,7 @@ class AssociationMiner:
         Finds frequent itemsets.
         FPGrowth algorithm used instead of Apriori because it can handle min_frequency=0.
         :param min_frequency: Float; threshold occurrence for a set to be considered "frequent"
+        :return DataFrame
         """
         itemsets = fpgrowth(one_hot_df, min_support=min_frequency, use_colnames=True)
         return itemsets.sort_values(by=["support"], ascending=False)
@@ -88,12 +128,15 @@ class AssociationMiner:
         Filters itemsets based on flags.
         :param itemsets: DataFrame
         :param remove_single_items: Bool; whether to remove sets with one item or not
+        :return DataFrame
         """
         # Remove all sets with one item, because those are just the most popular choices
         if remove_single_items:
             itemsets = itemsets.copy()
             itemsets["length"] = itemsets["itemsets"].apply(lambda x: len(x))
             return itemsets[itemsets["length"] > 1]
+        else:
+            return itemsets
 
     @staticmethod
     def _find_rules(
@@ -105,6 +148,7 @@ class AssociationMiner:
         Uses itemsets attribute to find rules.
         :param metric: "confidence" or "lift"
         :param metric_threshold: Float, [0, 1]
+        :return DataFrame
         """
         return association_rules(itemsets, metric=metric, min_threshold=metric_threshold)
 
@@ -131,6 +175,7 @@ class AssociationMiner:
         :param max_rule_length: Int or None; maximum length of antecedents + consequents to keep
         :param sort_by: List of Strings; column names
         :param sort_ascending: List of Bool; parallel to sort_by and determines sort order of corresponding column
+        :return DataFrame
         """
 
         if sort_by is None:
@@ -168,6 +213,7 @@ class AssociationMiner:
         :param df: DataFrame
         :param column_list: A list of columns to _reduce to
         :param column_values_list: A list parallel to column_list that lists values to look for in each column
+        :return List of Lists
         """
         lists = []  # each element is a row in DataFrame
         for col_i, column in enumerate(column_list):
@@ -198,6 +244,7 @@ class AssociationMiner:
         Converts itemset list into one-hot encoded DataFrame,
         which is required for frequent itemset mining.
         :param itemset_list: A list of lists
+        :return DataFrame
         """
         encoder = TransactionEncoder()
         array = encoder.fit(itemset_list).transform(itemset_list)

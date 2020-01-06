@@ -12,7 +12,8 @@ def main():
     # plotter.plot_chara_band_by_gender()
 
     miner = AssociationMiner("responses.tsv")
-    rules = miner.mine_favorite_band_members()
+    rules = miner.mine_favorite_characters()
+    results = miner.search_rules(rules, one_of=["Hikawa"], location="antecedents")
 
 
 main()
