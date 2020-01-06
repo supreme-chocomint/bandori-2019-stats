@@ -47,6 +47,27 @@ class AssociationMiner:
         )
         return self._generate_association_rules(raw_itemsets)
 
+    def mine_favorite_character_reasons(
+            self,
+            antecedent="all"
+    ):
+        """
+        Mines for rules involving favorite characters and reasons for liking those characters.
+        :param antecedent: "character", "reason", or "all"
+        :return: Rules
+        """
+        raw_itemsets = self._generate_frequent_itemsets(
+            [CHARACTERS, CHARACTER_REASONS], [ALL_CHARACTERS, ALL_CHARACTER_REASONS]
+        )
+        rules = Rules(self._generate_association_rules(raw_itemsets).search(one_of=ALL_CHARACTER_REASONS))
+
+        if antecedent == "all":
+            return rules
+        elif antecedent == "character":
+            return Rules(rules.search(one_of=ALL_CHARACTERS, location="antecedents"))
+        elif antecedent == "reason":
+            return Rules(rules.search(one_of=ALL_CHARACTER_REASONS, location="antecedents"))
+
     def _generate_frequent_itemsets(
             self,
             columns,
@@ -205,8 +226,8 @@ class Rules:
         """
         self._df = df
         self._organized_df = None
-        self._sort_by = []
-        self._sort_ascending = []
+        self._sort_by = ["lift"]
+        self._sort_ascending = [False]
 
     @property
     def table(self):
@@ -252,7 +273,7 @@ class Rules:
                 filter_partials.append(rules[rules[location].astype(str).str.contains(term)])
 
             # Union partial filter results to get final result
-            if res:
+            if res is not None:
                 filter_partials.append(res)
             res = pd.concat(filter_partials).drop_duplicates()
             filter_partials = []

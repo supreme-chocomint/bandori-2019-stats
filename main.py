@@ -1,5 +1,6 @@
 from plotters import CountsPlotter, CountsPlotDisplay
 from miner import AssociationMiner
+from constants import *
 
 
 def main():
@@ -12,8 +13,7 @@ def main():
     # plotter.plot_chara_band_by_gender()
 
     miner = AssociationMiner("responses.tsv")
-    rules = miner.mine_favorite_characters()
-    results = rules.search(one_of=["Hikawa"], location="antecedents")
+    rules = miner.mine_favorite_character_reasons()
 
 
 main()

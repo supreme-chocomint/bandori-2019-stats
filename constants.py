@@ -75,3 +75,11 @@ ALL_CHARACTERS = [
     "Tsukishima Marina",
     "Nono Yoshiko"
 ]
+ALL_CHARACTER_REASONS = [
+    "Singing Voice",
+    "Speaking Voice",
+    "Personality",
+    "Character Design",
+    "Their Seiyuu",
+    "Other"
+]
