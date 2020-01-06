@@ -56,6 +56,9 @@ class AssociationMiner:
         :param antecedent: "character", "reason", or "all"
         :return: Rules
         """
+        if antecedent not in ["all", "character", "reason"]:
+            raise ValueError("invalid antecedent argument: must be 'all', 'character', or 'reason'")
+
         raw_itemsets = self._generate_frequent_itemsets(
             [CHARACTERS, CHARACTER_REASONS], [ALL_CHARACTERS, ALL_CHARACTER_REASONS]
         )
