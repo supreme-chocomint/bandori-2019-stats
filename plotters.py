@@ -322,6 +322,28 @@ class CountsPlotter:
             ax.annotate(str(raw_value), (p.get_x(), p.get_height() * 1.005), size=self.display.annotation_size)
 
 
+class AssociationMetricPlotter:
+
+    @staticmethod
+    def plot(
+            rules,
+            x_axis,
+            y_axis
+    ):
+        """
+        Plots scatter graph of association rule metrics.
+        :param rules: Rules
+        :param x_axis: String of column name
+        :param y_axis: String of column name
+        """
+        x = rules.table[[x_axis]].to_numpy()
+        y = rules.table[[y_axis]].to_numpy()
+        plt.scatter(x, y)
+        plt.xlabel(x_axis)
+        plt.ylabel(y_axis)
+        plt.show()
+
+
 class HeatMapPlotter:
     """
     Makes heat map of a demographic.
