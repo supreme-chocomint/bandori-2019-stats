@@ -3,7 +3,6 @@
 REGION = "Where are you from?"
 GENDER = "What is your gender?.1"
 AGE = "How old are you?.1"
-PLAY_STYLE = "What is your preferred method of playing?"
 OTHER_GAMES_IDOL = "Do you play other idol-like games?"
 OTHER_GAMES_RHYTHM = "Do you play other rhythm games?"
 CHARACTER_POPIPA = "Who is your favorite girl in Poppin'Party?"
@@ -21,6 +20,7 @@ CHARACTERS = "Who are your favorite girls? (You may choose up to 5)"
 CHARACTER_REASONS = "What do you like most about your best girls?"
 SONGS_ORIGINAL = "What are your favorite original songs in the franchise? (You may choose up to 7)"
 SONGS_COVER = "What are your favorite cover songs? (You may choose up to 7)"
+PLAY_STYLE = "What is your preferred method of playing?"
 FRANCHISE_PARTICIPATION = "What do you mainly participate in the BanG Dream! franchise?"
 
 # Values/answers

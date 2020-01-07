@@ -111,7 +111,8 @@ class CountsPlotter:
             title="Favorite Bands (Music) By Gender",
             x_label="Band",
             y_label="Percent in Gender With Band Listed",
-            transpose=True
+            transpose=True,
+            annotation_size="medium"
         ) if display is None else display
 
         self._plot_band_by_gender(BANDS_MUSIC)
@@ -123,10 +124,62 @@ class CountsPlotter:
             title="Favorite Bands (Characters) By Gender",
             x_label="Band",
             y_label="Percent in Gender With Band Listed",
-            transpose=True
+            transpose=True,
+            annotation_size="medium"
         ) if display is None else display
 
         self._plot_band_by_gender(BANDS_CHARA)
+        self.display = None
+
+    def plot_play_style_by_age(self, display=None):
+        self.display = CountsPlotDisplay(
+            kind="bar",
+            title="Play Style By Age Group",
+            x_label="Play Style",
+            y_label="Percent in Age Group with Play Style",
+            transpose=True,
+            annotation_size="x-small"
+        ) if display is None else display
+
+        df = DataCleaner.filter_age(self.df)
+        raw, normalized = self._group_counts_for_answer(df, AGE, PLAY_STYLE)
+        self._plot_group_counts_for_answer(raw, normalized, sort=self.sort_ages)
+
+        self.display = None
+
+    def plot_play_style_by_region(self, display=None, show_all=True):
+        def sort(raw_counts, normalized_counts):
+            return self.sort_regions(raw_counts, normalized_counts, data_has_all=show_all)
+
+        self.display = CountsPlotDisplay(
+            kind="bar",
+            title="Play Style By Region",
+            x_label="Play Style",
+            y_label="Percent in Region with Play Style",
+            transpose=True,
+            annotation_size="x-small"
+        ) if display is None else display
+
+        df = DataCleaner.filter_region(self.df, keep_all_legal=False)
+        raw, normalized = self._group_counts_for_answer(df, REGION, PLAY_STYLE)
+        self._plot_group_counts_for_answer(raw, normalized, sort=sort)
+
+        self.display = None
+
+    def plot_play_style_by_gender(self, display=None):
+        self.display = CountsPlotDisplay(
+            kind="bar",
+            title="Play Style By Gender",
+            x_label="Play Style",
+            y_label="Percent in Gender with Play Style",
+            transpose=True,
+            annotation_size="medium"
+        ) if display is None else display
+
+        df = DataCleaner.filter_gender(self.df)
+        raw, normalized = self._group_counts_for_answer(df, GENDER, PLAY_STYLE)
+        self._plot_group_counts_for_answer(raw, normalized)
+
         self.display = None
 
     def _plot_band_by_age(
@@ -147,10 +200,7 @@ class CountsPlotter:
             show_all
     ):
         def data_sort(c, c_norm):
-            if show_all:
-                return self.sort_regions(c, c_norm, data_has_all=True)
-            else:
-                return self.sort_regions(c, c_norm, data_has_all=False)
+            return self.sort_regions(c, c_norm, data_has_all=show_all)
 
         df = self.df.replace(to_replace="North Asia and Central Asia", value="North/Central Asia")
         df = DataCleaner.filter_region(df, show_all)
@@ -178,7 +228,7 @@ class CountsPlotter:
             df,
             stat_col,
             answer_col,
-            answer_values
+            answer_values=None
     ):
         """
         For each statistical group (e.g. people from Oceania),
@@ -189,6 +239,9 @@ class CountsPlotter:
         The elements of answer_values should not be substrings of each other,
         or that will match false-positives.
 
+        If answer_values is None, the responses are split on commas, and the resulting
+        elements are taken as the possible answer values.
+
         E.g. stat_col=AGE, answer_col=BAND_MUSIC will give you tables with
         different ages in the rows and different bands in the columns, where
         each cell tells you how many people in that age listed that band as a
@@ -197,9 +250,15 @@ class CountsPlotter:
         :param df: DataFrame
         :param stat_col: String; column name
         :param answer_col: String; column name
-        :param answer_values: List of Strings; all legal values for answer column
+        :param answer_values: List of Strings or None; all legal values for answer column
         :return: two DataFrames, one with raw counts and one with percentages in group
         """
+
+        # If no answer values provided, get them by splitting responses on comma
+        if answer_values is None:
+            answers = df[answer_col].str.split(",", expand=True)  # split up answers
+            answer_values = answers.stack().str.strip().unique()  # make into Series, clean, and get all unique
+
         rows = []
         rows_normalized = []
         groups = df[stat_col].unique()
