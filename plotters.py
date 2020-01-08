@@ -160,7 +160,7 @@ class CountsPlotter:
             annotation_size="x-small"
         ) if display is None else display
 
-        df = DataCleaner.filter_region(self.df, keep_all_legal=False)
+        df = DataCleaner.filter_region(self.df, keep_all_legal=show_all)
         raw, normalized = self._group_counts_for_answer(df, REGION, PLAY_STYLE)
         self._plot_group_counts_for_answer(raw, normalized, sort=sort)
 
@@ -178,6 +178,57 @@ class CountsPlotter:
 
         df = DataCleaner.filter_gender(self.df)
         raw, normalized = self._group_counts_for_answer(df, GENDER, PLAY_STYLE)
+        self._plot_group_counts_for_answer(raw, normalized)
+
+        self.display = None
+
+    def plot_participation_by_age(self, display=None):
+        self.display = CountsPlotDisplay(
+            kind="bar",
+            title="Franchise Participation By Age Group",
+            x_label="Participation Methods",
+            y_label="Percent in Age Group with Participation Method",
+            transpose=True,
+            annotation_size="xx-small"
+        ) if display is None else display
+
+        df = DataCleaner.filter_age(self.df)
+        raw, normalized = self._group_counts_for_answer(df, AGE, FRANCHISE_PARTICIPATION)
+        self._plot_group_counts_for_answer(raw, normalized, sort=self.sort_ages)
+
+        self.display = None
+
+    def plot_participation_by_region(self, display=None, show_all=True):
+        def sort(raw_counts, normalized_counts):
+            return self.sort_regions(raw_counts, normalized_counts, data_has_all=show_all)
+
+        self.display = CountsPlotDisplay(
+            kind="bar",
+            title="Franchise Participation By Region",
+            x_label="Participation Methods",
+            y_label="Percent in Region with Participation Method",
+            transpose=True,
+            annotation_size="x-small"
+        ) if display is None else display
+
+        df = DataCleaner.filter_region(self.df, keep_all_legal=False)
+        raw, normalized = self._group_counts_for_answer(df, REGION, FRANCHISE_PARTICIPATION)
+        self._plot_group_counts_for_answer(raw, normalized, sort=sort)
+
+        self.display = None
+
+    def plot_participation_by_gender(self, display=None):
+        self.display = CountsPlotDisplay(
+            kind="bar",
+            title="Franchise Participation By Gender",
+            x_label="Participation Methods",
+            y_label="Percent in Gender with Participation Method",
+            transpose=True,
+            annotation_size="x-small"
+        ) if display is None else display
+
+        df = DataCleaner.filter_gender(self.df)
+        raw, normalized = self._group_counts_for_answer(df, GENDER, FRANCHISE_PARTICIPATION)
         self._plot_group_counts_for_answer(raw, normalized)
 
         self.display = None
@@ -239,8 +290,9 @@ class CountsPlotter:
         The elements of answer_values should not be substrings of each other,
         or that will match false-positives.
 
-        If answer_values is None, the responses are split on commas, and the resulting
-        elements are taken as the possible answer values.
+        If answer_values is None, the responses are split on commas, parentheses and
+        their contents are removed, and the resulting elements are taken as the
+        possible answer values.
 
         E.g. stat_col=AGE, answer_col=BAND_MUSIC will give you tables with
         different ages in the rows and different bands in the columns, where
@@ -256,6 +308,8 @@ class CountsPlotter:
 
         # If no answer values provided, get them by splitting responses on comma
         if answer_values is None:
+            # remove round brackets' contents (https://stackoverflow.com/a/40621332)
+            df[answer_col].replace(r"\([^()]*\)", "", regex=True, inplace=True)
             answers = df[answer_col].str.split(",", expand=True)  # split up answers
             answer_values = answers.stack().str.strip().unique()  # make into Series, clean, and get all unique
 
