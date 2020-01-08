@@ -1,5 +1,6 @@
 from plotters import CountsPlotter, CountsPlotDisplay, AssociationMetricPlotter
 from miner import AssociationMiner
+from snsplotters import HeatMapPlotter
 from cleaner import DataCleaner
 from constants import *
 
@@ -19,8 +20,13 @@ def main():
     # plotter.plot_participation_by_region(show_all=False)
     # plotter.plot_participation_by_gender()
 
-    miner = AssociationMiner("responses.tsv")
-    # rules = miner.mine_favorite_character_reasons(antecedent="reason")
+    miner = AssociationMiner("responses.tsv", export_to_excel=True)
+    # miner.mine_favorite_characters()
+    # miner.mine_favorite_band_members()
+    # miner.mine_favorite_character_reasons(antecedent="character")
+    # miner.mine_favorite_character_reasons(antecedent="reason")
+    # miner.mine_age_favorite_characters()
+    # miner.mine_gender_favorite_characters()
     # AssociationMetricPlotter.plot(rules, x_axis="support", y_axis="lift")
 
 

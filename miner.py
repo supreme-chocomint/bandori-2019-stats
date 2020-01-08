@@ -1,9 +1,38 @@
 from mlxtend.frequent_patterns import apriori, fpgrowth, association_rules
 from mlxtend.preprocessing import TransactionEncoder
 import pandas as pd
+from functools import wraps
 
 from constants import *
 from cleaner import DataCleaner
+
+
+def _can_export(f):
+    """
+    Decorator for AssociationMiner methods that return Rules.
+    If AssociationMiner is set to export to Excel, then exporting occurs.
+    :param f: Method
+    :return: Method
+    """
+    @wraps(f)
+    def wrapper(self, *args, **kwargs):
+        res = f(self, *args, **kwargs)  # Rules object
+
+        if self.export_to_excel:
+            name = f.__name__
+            if args:
+                name += "." + "".join(args)
+            if kwargs:
+                name += "." + "".join(kwargs.values())
+            name += ".xlsx"
+
+            with pd.ExcelWriter(name) as writer:
+                if res.table_organized is not None:
+                    res.table_organized.to_excel(writer, sheet_name="Organized")
+                res.table.to_excel(writer, sheet_name="Raw")
+
+        return res
+    return wrapper
 
 
 class AssociationMiner:
@@ -14,9 +43,11 @@ class AssociationMiner:
 
     def __init__(
             self,
-            tsv_path
+            tsv_path,
+            export_to_excel=False
     ):
         self.df = DataCleaner.prepare_data_frame(tsv_path)
+        self.export_to_excel = export_to_excel
 
     def mine(
             self,
@@ -34,6 +65,7 @@ class AssociationMiner:
         raw_itemsets = self._generate_frequent_itemsets(columns, column_values, min_frequency)
         return self._generate_association_rules(raw_itemsets)
 
+    @_can_export
     def mine_favorite_characters(self):
         """
         Mines for rules regarding all favorite characters.
@@ -41,6 +73,7 @@ class AssociationMiner:
         """
         return self.mine([CHARACTERS], [ALL_CHARACTERS])
 
+    @_can_export
     def mine_favorite_band_members(self):
         """
         Mines for rules regarding favorite character in each band.
@@ -56,6 +89,7 @@ class AssociationMiner:
             [[ALL_CHARACTERS] * 7][0]  # list of 7 CHARACTER lists
         )
 
+    @_can_export
     def mine_favorite_character_reasons(
             self,
             antecedent="all"
@@ -78,6 +112,7 @@ class AssociationMiner:
         elif antecedent == "reason":
             return Rules(rules.search(one_of=ALL_CHARACTER_REASONS, location="antecedents"))
 
+    @_can_export
     def mine_age_favorite_characters(self):
         """
         Mines for rules that predict age from favorite characters.
@@ -94,6 +129,7 @@ class AssociationMiner:
         )
         return Rules(table)
 
+    @_can_export
     def mine_gender_favorite_characters(self):
         """
         Mines for rules that predict gender from favorite characters.
@@ -275,6 +311,13 @@ class Rules:
         :return: DataFrame
         """
         return self._df
+
+    @property
+    def table_organized(self):
+        """
+        :return: DataFrame
+        """
+        return self._organized_df
 
     def search(
             self,
