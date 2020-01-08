@@ -53,9 +53,10 @@ class CountsPlotter:
     characters or the regions (depending on the CountsPlotDisplay's attributes).
     """
 
-    def __init__(self, tsv_path):
+    def __init__(self, tsv_path, export_to_excel=False):
         self.display = None
         self.df = DataCleaner.prepare_data_frame(tsv_path)
+        self.export_to_excel = export_to_excel
 
     def plot_music_band_by_age(self, display=None):
         self.display = CountsPlotDisplay(
@@ -420,6 +421,11 @@ class CountsPlotter:
 
         self._label_bars_with_raw_values(ax, counts)
         plt.show()
+
+        if self.export_to_excel:
+            with pd.ExcelWriter(f"{self.display.title}.xlsx") as writer:
+                counts.to_excel(writer, sheet_name="Raw")
+                counts_normalized.to_excel(writer, sheet_name="Normalized")
 
     def _label_bars_with_raw_values(
             self,

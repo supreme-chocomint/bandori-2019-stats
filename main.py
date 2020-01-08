@@ -5,7 +5,7 @@ from constants import *
 
 
 def main():
-    plotter = CountsPlotter("responses.tsv")
+    plotter = CountsPlotter("responses.tsv", export_to_excel=True)
     # plotter.plot_music_band_by_age()
     # plotter.plot_chara_band_by_age()
     # plotter.plot_music_band_by_region(show_all=False)
