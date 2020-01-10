@@ -16,10 +16,18 @@ def _can_export(f):
     """
     @wraps(f)
     def wrapper(self, *args, **kwargs):
+        name_map = {
+            "mine_favorite_characters": "overall-favorite-characters",
+            "mine_favorite_band_members": "favorite-characters-in-band",
+            "mine_favorite_character_reasons": "reasons-for-liking-characters",
+            "mine_age_favorite_characters": "age-and-favorite-characters",
+            "mine_gender_favorite_characters": "gender-and-favorite-characters",
+            "mine_region_favorite_characters": "region-and-favorite-characters"
+        }
         res = f(self, *args, **kwargs)  # Rules object
 
         if self.export_to_excel:
-            name = f.__name__
+            name = name_map[f.__name__]
             if args:
                 name += "." + "".join(args)
             if kwargs:
