@@ -119,6 +119,7 @@ class AssociationMiner:
         The reverse doesn't seem to predict anything useful (the predictions are just popular characters).
         Since this is predicting age, the predictions are overwhelmingly 20-24yrs and 14-19yrs, since confidence
         must be >30%, and less common age groups wouldn't make this threshold.
+        :return Rules
         """
         age_values = DataCleaner.filter_age(self.df)[AGE].unique().tolist()
         table = self.mine(
@@ -133,12 +134,28 @@ class AssociationMiner:
     def mine_gender_favorite_characters(self):
         """
         Mines for rules that predict gender from favorite characters.
+        :return Rules
         """
         gender_values = DataCleaner.filter_gender(self.df)[GENDER].unique().tolist()
         table = self.mine(
             [CHARACTERS, GENDER], [ALL_CHARACTERS, gender_values]
         ).search(
             one_of=gender_values,
+            location="consequents"
+        )
+        return Rules(table)
+
+    @_can_export
+    def mine_region_favorite_characters(self):
+        """
+        Mines for rules that predict region from favorite characters.
+        :return Rules
+        """
+        region_values = DataCleaner.filter_region(self.df, keep_all_legal=True)[REGION].unique().tolist()
+        table = self.mine(
+            [CHARACTERS, REGION], [ALL_CHARACTERS, region_values]
+        ).search(
+            one_of=region_values,
             location="consequents"
         )
         return Rules(table)
