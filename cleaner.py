@@ -29,6 +29,7 @@ class DataCleaner:
              CHARACTER_ROSELIA,
              SONGS_ORIGINAL,
              SONGS_COVER,
+             JP_SERVER,
              FRANCHISE_PARTICIPATION,
              PLAY_STYLE,
              OTHER_GAMES_IDOL,
@@ -47,23 +48,22 @@ class DataCleaner:
         :param df: DataFrame
         :param column: name of column to check
         """
-        return df.dropna(subset=[column])  # remove if NaN
+        res = df[df[column] != NO_RESPONSE]
+        return res.dropna(subset=[column])  # remove if NaN
 
     @classmethod
     def filter_gender(
             cls,
             df
     ):
-        res = df[df[GENDER] != NO_RESPONSE]
-        return cls.filter_invalids(res, GENDER)
+        return cls.filter_invalids(df, GENDER)
 
     @classmethod
     def filter_age(
             cls,
             df
     ):
-        res = df[df[AGE] != NO_RESPONSE]
-        return cls.filter_invalids(res, AGE)
+        return cls.filter_invalids(df, AGE)
 
     @classmethod
     def filter_region(

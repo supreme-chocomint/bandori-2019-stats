@@ -12,6 +12,7 @@ CHARACTER_AFTERGLOW = "Who is your favorite girl in Afterglow?"
 CHARACTER_PASUPARE = "Who is your favorite girl in Pastel*Palettes?"
 CHARACTER_HHW = "Who is your favorite girl in Hello, Happy World!?"
 CHARACTER_GURIGURI = "Who is your favorite girl in Glitter*Green?"
+JP_SERVER = "Do you play on the JP server?"
 
 # Multi-response columns/questions
 BANDS_MUSIC = "Which bands are your favorite based on music? (You may choose up to 2)"
@@ -82,4 +83,13 @@ ALL_CHARACTER_REASONS = [
     "Character Design",
     "Their Seiyuu",
     "Other"
+]
+YES_NO = [
+    "Yes",
+    "No"
+]
+YES_NO_USED_TO = [
+    "Yes",
+    "No",
+    "I used to"
 ]

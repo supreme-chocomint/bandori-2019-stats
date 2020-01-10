@@ -53,17 +53,22 @@ class AssociationMiner:
             self,
             columns,
             column_values,
-            min_frequency=0.01  # ~25 responses
+            min_frequency=0.01,  # ~25 responses
+            metric="confidence",
+            metric_threshold=0.3
     ):
         """
-        Generic function to mine rules from responses.
+        Generic function to mine rules from responses. Default metric is confidence > 30%.
+        If confidence is too high, rules are too specific to individual people, as opinions vary quite a bit.
         :param columns: List of column names to consider.
         :param column_values: List of column values each column can have (one list per column).
         :param min_frequency: threshold frequency for itemset to be considered "frequent"
+        :param metric: "confidence" or "lift"
+        :param metric_threshold: Float, [0, 1]
         :return: Rules
         """
         raw_itemsets = self._generate_frequent_itemsets(columns, column_values, min_frequency)
-        return self._generate_association_rules(raw_itemsets)
+        return self._generate_association_rules(raw_itemsets, metric, metric_threshold)
 
     @_can_export
     def mine_favorite_characters(self):
@@ -179,15 +184,18 @@ class AssociationMiner:
 
     def _generate_association_rules(
             self,
-            itemsets
+            itemsets,
+            metric,
+            metric_threshold
     ):
         """
-        Uses frequent itemsets to generate rules with 30% confidence, 1 antecedent, and sorted by lift.
-        If confidence is too high, rules are too specific to individual people, as opinions vary quite a bit.
+        Uses frequent itemsets to generate rules with 1 antecedent and sorted by lift.
         :param itemsets: DataFrame
+        :param metric: "confidence" or "lift"
+        :param metric_threshold: Float, [0, 1]
         :return: Rules
         """
-        rules = self._find_rules(itemsets, metric="confidence", metric_threshold=0.3)
+        rules = self._find_rules(itemsets, metric, metric_threshold)
         rules.organize(max_antecedents=1, sort_by=["lift"], sort_ascending=[False])
         return rules
 
@@ -202,7 +210,7 @@ class AssociationMiner:
         :param min_frequency: Float; threshold occurrence for a set to be considered "frequent"
         :return DataFrame
         """
-        itemsets = fpgrowth(one_hot_df, min_support=min_frequency, use_colnames=True)
+        itemsets = apriori(one_hot_df, min_support=min_frequency, use_colnames=True)
         return itemsets.sort_values(by=["support"], ascending=False)
 
     @staticmethod
@@ -251,26 +259,29 @@ class AssociationMiner:
         :param column_values_list: A list parallel to column_list that lists values to look for in each column
         :return List of Lists
         """
-        lists = []  # each element is a row in DataFrame
-        for col_i, column in enumerate(column_list):
-            df = DataCleaner.filter_invalids(df, column)
-            for list_i, column_value in df[column].items():
+        rows = []
 
+        # remove rows with invalids in a column
+        for column in column_list:
+            df = DataCleaner.filter_invalids(df, column)
+        df.reset_index(drop=True, inplace=True)  # needed for enumeration/iteration to work
+
+        # Make rows
+        for _ in range(len(df)):
+            rows.append([])
+
+        # Populate rows
+        for col_i, column in enumerate(column_list):
+            for row_i, column_value in df[column].items():
                 # Find all values in multi-response
                 legal_values = column_values_list[col_i]
                 found_values = []
                 for v in legal_values:
                     if v in column_value:
                         found_values.append(v)
+                rows[row_i].extend(found_values)
 
-                # Merge them into list of sets
-                try:
-                    lists[list_i].extend(found_values)
-                except IndexError:
-                    # Haven't made this set yet
-                    lists.append(found_values)
-
-        return lists
+        return rows
 
     def _transform_to_one_hot(
             self,
