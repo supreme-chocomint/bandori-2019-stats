@@ -8,30 +8,58 @@ from cleaner import DataCleaner
 
 class HeatMapPlotter:
     """
-    Makes heat map of a demographic.
-    Right now, only draws a map of those who have Poppin'Party as a favorite, visualizing their gender and region.
-    Each cell is proportion of fans in the region (listed in x-axis) that belong to the gender (listed in y-axis).
+    Makes heat map for demographic frequencies.
     """
 
     def __init__(self, tsv_path):
         self.df = DataCleaner.prepare_data_frame(tsv_path)
 
-    def draw_heat_map(self):
+    def draw_gender_vs_region(self):
         df = DataCleaner.filter_gender(self.df)
-        likes_poppin_party = df[df[BANDS_MUSIC].str.contains("Poppin'Party")]
-        pp_counts = pd.crosstab(likes_poppin_party[GENDER], likes_poppin_party[REGION], normalize="columns")
-        print(pp_counts)
+        df = DataCleaner.filter_region(df)
+        counts = pd.crosstab(df[REGION], df[GENDER], normalize="index")
+        print(pd.crosstab(df[REGION], df[GENDER]))
+        self._draw(counts, border="horizontal")
 
-        plt.title("Poppin'Party as Favourite Band")
-        ax = sns.heatmap(pp_counts, annot=True, cmap="coolwarm")
+    def draw_age_vs_region(self):
+        df = DataCleaner.filter_age(self.df)
+        df = DataCleaner.filter_region(df)
+        counts = pd.crosstab(df[REGION], df[AGE], normalize="index")
+        print(pd.crosstab(df[REGION], df[AGE]))
+        self._draw(counts, border="horizontal")
+
+    def draw_age_vs_gender(self):
+        df = DataCleaner.filter_age(self.df)
+        df = DataCleaner.filter_gender(df)
+        counts = pd.crosstab(df[AGE], df[GENDER], normalize="index")
+        print(pd.crosstab(df[AGE], df[GENDER]))
+        self._draw(counts, border="horizontal")
+
+    def _draw(self, counts, cmap="BuGn", border="none"):
+        """
+        Draws heat map for frequency table.
+        :param counts: DataFrame with counts in each cell
+        :param cmap: color map to use. See https://chrisalbon.com/python/data_visualization/seaborn_color_palettes/
+        :param border: "horizontal", "vertical", or "none": how to draw borders between rows or columns
+        """
+        ax = sns.heatmap(counts, annot=True, cmap=cmap)
         self._fix_heat_map()
-        ax.vlines(list(range(len(pp_counts.columns))), *ax.get_ylim())  # add lines to separate columns
+
+        if border == "none":
+            pass
+        elif border == "horizontal":
+            ax.hlines(list(range(len(counts.index))), *ax.get_xlim())
+        elif border == "vertical":
+            ax.vlines(list(range(len(counts.columns))), *ax.get_ylim())
+        else:
+            raise ValueError("invalid 'border' argument")
+
         plt.show()
 
     @staticmethod
     def _fix_heat_map():
         """
-        Fixes Seaborn bug that crops top/bottom of heatmap on show
+        Fixes Seaborn bug that crops top/bottom of heat map on show
         https://github.com/mwaskom/seaborn/issues/1773#issuecomment-546466986
         """
         # fix for mpl bug that cuts off top/bottom of seaborn viz
