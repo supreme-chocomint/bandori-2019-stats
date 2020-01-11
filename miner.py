@@ -22,7 +22,10 @@ def _can_export(f):
             "mine_favorite_character_reasons": "reasons-for-liking-characters",
             "mine_age_favorite_characters": "age-and-favorite-characters",
             "mine_gender_favorite_characters": "gender-and-favorite-characters",
-            "mine_region_favorite_characters": "region-and-favorite-characters"
+            "mine_region_favorite_characters": "region-and-favorite-characters",
+            "mine_age_favorite_band_chara": "age-and-favorite-band-for-characters",
+            "mine_gender_favorite_band_chara": "gender-and-favorite-band-for-characters",
+            "mine_region_favorite_band_chara": "region-and-favorite-band-for-characters"
         }
         res = f(self, *args, **kwargs)  # Rules object
 
@@ -171,6 +174,39 @@ class AssociationMiner:
             one_of=region_values,
             location="consequents"
         )
+        return Rules(table)
+
+    @_can_export
+    def mine_age_favorite_band_chara(self):
+        """
+        :return: Rules
+        """
+        values = DataCleaner.filter_age(self.df)[AGE].unique().tolist()
+        table = self.mine(
+            [BANDS_CHARA, AGE], [ALL_BANDS, values]
+        ).search(one_of=values)
+        return Rules(table)
+
+    @_can_export
+    def mine_gender_favorite_band_chara(self):
+        """
+        :return: Rules
+        """
+        values = DataCleaner.filter_gender(self.df)[GENDER].unique().tolist()
+        table = self.mine(
+            [BANDS_CHARA, GENDER], [ALL_BANDS, values]
+        ).search(one_of=values)
+        return Rules(table)
+
+    @_can_export
+    def mine_region_favorite_band_chara(self):
+        """
+        :return: Rules
+        """
+        values = DataCleaner.filter_region(self.df)[REGION].unique().tolist()
+        table = self.mine(
+            [BANDS_CHARA, REGION], [ALL_BANDS, values]
+        ).search(one_of=values)
         return Rules(table)
 
     def _generate_frequent_itemsets(
