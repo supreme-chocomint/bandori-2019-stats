@@ -1,12 +1,13 @@
 from plotters import CountsPlotter, CountsPlotDisplay, AssociationMetricPlotter
 from miner import AssociationMiner
 from snsplotters import HeatMapPlotter
-from cleaner import DataCleaner
+from helpers import DataCleaner, ResponseParser
 from constants import *
 
 
 def main():
-    plotter = CountsPlotter("responses.tsv", export_to_excel=True)
+    plotter = CountsPlotter("responses.tsv", export_to_excel=False)
+    sns_plotter = HeatMapPlotter("responses.tsv")
     # plotter.plot_music_band_by_age()
     # plotter.plot_chara_band_by_age()
     # plotter.plot_music_band_by_region(show_all=False)
@@ -19,6 +20,9 @@ def main():
     # plotter.plot_participation_by_age()
     # plotter.plot_participation_by_region(show_all=False)
     # plotter.plot_participation_by_gender()
+    # sns_plotter.draw_gender_vs_region()
+    # sns_plotter.draw_age_vs_gender()
+    # sns_plotter.draw_age_vs_region()
 
     miner = AssociationMiner("responses.tsv", export_to_excel=True)
     # miner.mine_favorite_characters()
@@ -27,6 +31,10 @@ def main():
     # miner.mine_favorite_character_reasons(antecedent="reason")
     # miner.mine_age_favorite_characters()
     # miner.mine_gender_favorite_characters()
+    # miner.mine_region_favorite_characters()
+    # miner.mine_age_favorite_band_chara()
+    # miner.mine_gender_favorite_band_chara()
+    # miner.mine_region_favorite_band_chara()
     # AssociationMetricPlotter.plot(rules, x_axis="support", y_axis="lift")
 
 

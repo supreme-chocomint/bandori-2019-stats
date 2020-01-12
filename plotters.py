@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
 from constants import *
-from cleaner import DataCleaner
+from helpers import DataCleaner, ResponseParser
 
 
 class CountsPlotDisplay:
@@ -306,12 +306,9 @@ class CountsPlotter:
         :return: two DataFrames, one with raw counts and one with percentages in group
         """
 
-        # If no answer values provided, get them by splitting responses on comma
+        # If no answer values provided, get them by parsing all responses
         if answer_values is None:
-            # remove round brackets' contents (https://stackoverflow.com/a/40621332)
-            df[answer_col].replace(r"\([^()]*\)", "", regex=True, inplace=True)
-            answers = df[answer_col].str.split(",", expand=True)  # split up answers
-            answer_values = answers.stack().str.strip().unique()  # make into Series, clean, and get all unique
+            answer_values = ResponseParser.unique_answers(df, answer_col)
 
         rows = []
         rows_normalized = []

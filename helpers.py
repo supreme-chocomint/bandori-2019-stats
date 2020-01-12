@@ -3,6 +3,24 @@ import pandas as pd
 from constants import *
 
 
+class ResponseParser:
+    """
+    Parses the response of a person into usable answers.
+    """
+
+    @staticmethod
+    def unique_answers(df, column):
+        """
+        Finds all unique answers from all multi-answer responses.
+        Answers are assumed to be comma-separated (after removing brackets and their contents).
+        :return:
+        """
+        # remove round brackets' contents (https://stackoverflow.com/a/40621332)
+        df[column].replace(r"\([^()]*\)", "", regex=True, inplace=True)
+        answers = df[column].str.split(",", expand=True)  # split up answers
+        return answers.stack().str.strip().unique()  # make into Series, clean, and get all unique
+
+
 class DataCleaner:
     """
     Cleans DataFrames of unneeded data, invalid responses, etc.
