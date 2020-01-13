@@ -7,7 +7,6 @@ from constants import *
 
 def main():
     plotter = CountsPlotter("responses.tsv", export_to_csv=True)
-    sns_plotter = HeatMapPlotter("responses.tsv")
     # plotter.plot_music_band_by_age()
     # plotter.plot_chara_band_by_age()
     # plotter.plot_music_band_by_region()
@@ -20,6 +19,8 @@ def main():
     # plotter.plot_participation_by_age()
     # plotter.plot_participation_by_region()
     # plotter.plot_participation_by_gender()
+
+    sns_plotter = HeatMapPlotter("responses.tsv", export_to_csv=True)
     # sns_plotter.draw_gender_vs_region()
     # sns_plotter.draw_age_vs_gender()
     # sns_plotter.draw_age_vs_region()
