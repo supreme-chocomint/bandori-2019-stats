@@ -63,6 +63,7 @@ class DataCleaner:
              OTHER_GAMES_RHYTHM]
         ]  # Filter out unneeded data
 
+        df = df.replace(to_replace="North Asia and Central Asia", value="North/Central Asia")  # makes plotting nicer
         return df
 
     @staticmethod

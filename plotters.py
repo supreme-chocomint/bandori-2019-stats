@@ -52,10 +52,10 @@ class CountsPlotter:
     characters or the regions (depending on the CountsPlotDisplay's attributes).
     """
 
-    def __init__(self, tsv_path, export_to_excel=False):
+    def __init__(self, tsv_path, export_to_csv=False):
         self.display = None
         self.df = DataCleaner.prepare_data_frame(tsv_path)
-        self.export_to_excel = export_to_excel
+        self.export_to_csv = export_to_csv
 
     def plot_music_band_by_age(self, display=None):
         self.display = CountsPlotDisplay(
@@ -211,7 +211,7 @@ class CountsPlotter:
             annotation_size="x-small"
         ) if display is None else display
 
-        df = DataCleaner.filter_region(self.df, keep_all_legal=False)
+        df = DataCleaner.filter_region(self.df, keep_all_legal=show_all)
         raw, normalized = self._group_counts_for_answer(df, REGION, FRANCHISE_PARTICIPATION)
         self._plot_group_counts_for_answer(raw, normalized, sort=sort)
 
@@ -253,8 +253,7 @@ class CountsPlotter:
         def data_sort(c, c_norm):
             return self.sort_regions(c, c_norm, data_has_all=show_all)
 
-        df = self.df.replace(to_replace="North Asia and Central Asia", value="North/Central Asia")
-        df = DataCleaner.filter_region(df, show_all)
+        df = DataCleaner.filter_region(self.df, show_all)
         counts, counts_norm = self._group_counts_for_answer(
             df, stat_col=REGION, answer_col=band_col, answer_values=ALL_BANDS
         )
@@ -418,10 +417,9 @@ class CountsPlotter:
         self._label_bars_with_raw_values(ax, counts)
         plt.show()
 
-        if self.export_to_excel:
-            with pd.ExcelWriter(f"{self.display.title}.xlsx") as writer:
-                counts.to_excel(writer, sheet_name="Raw")
-                counts_normalized.to_excel(writer, sheet_name="Normalized")
+        if self.export_to_csv:
+            counts.to_csv(f"{self.display.title}.raw.csv")
+            counts_normalized.to_csv(f"{self.display.title}.normalized.csv")
 
     def _label_bars_with_raw_values(
             self,

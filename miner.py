@@ -14,6 +14,7 @@ def _can_export(f):
     :param f: Method
     :return: Method
     """
+
     @wraps(f)
     def wrapper(self, *args, **kwargs):
         name_map = {
@@ -25,24 +26,24 @@ def _can_export(f):
             "mine_region_favorite_characters": "region-and-favorite-characters",
             "mine_age_favorite_band_chara": "age-and-favorite-band-for-characters",
             "mine_gender_favorite_band_chara": "gender-and-favorite-band-for-characters",
-            "mine_region_favorite_band_chara": "region-and-favorite-band-for-characters"
+            "mine_region_favorite_band_chara": "region-and-favorite-band-for-characters",
+            "mine_region_favorite_seiyuu": "region-and-favorite-seiyuu"
         }
         res = f(self, *args, **kwargs)  # Rules object
 
-        if self.export_to_excel:
+        if self.export_to_csv:
             name = name_map[f.__name__]
             if args:
                 name += "." + "".join(args)
             if kwargs:
                 name += "." + "".join(kwargs.values())
-            name += ".xlsx"
 
-            with pd.ExcelWriter(name) as writer:
-                if res.table_organized is not None:
-                    res.table_organized.to_excel(writer, sheet_name="Organized")
-                res.table.to_excel(writer, sheet_name="Raw")
+            if res.table_organized is not None:
+                res.table_organized.to_csv(f"{name}.organized.csv")
+            res.table.to_csv(f"{name}.csv")
 
         return res
+
     return wrapper
 
 
@@ -55,10 +56,10 @@ class AssociationMiner:
     def __init__(
             self,
             tsv_path,
-            export_to_excel=False
+            export_to_csv=False
     ):
         self.df = DataCleaner.prepare_data_frame(tsv_path)
-        self.export_to_excel = export_to_excel
+        self.export_to_csv = export_to_csv
 
     def mine(
             self,
