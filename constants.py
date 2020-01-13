@@ -23,6 +23,7 @@ SONGS_ORIGINAL = "What are your favorite original songs in the franchise? (You m
 SONGS_COVER = "What are your favorite cover songs? (You may choose up to 7)"
 PLAY_STYLE = "What is your preferred method of playing?"
 FRANCHISE_PARTICIPATION = "What do you mainly participate in the BanG Dream! franchise?"
+SEIYUU = "Who are your favorite seiyuu? (You may choose up to 5)"
 
 # Values/answers
 NO_RESPONSE = "Prefer not to say"

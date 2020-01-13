@@ -11,14 +11,22 @@ class ResponseParser:
     @staticmethod
     def unique_answers(df, column):
         """
-        Finds all unique answers from all multi-answer responses.
-        Answers are assumed to be comma-separated (after removing brackets and their contents).
-        :return:
+        Finds all unique answers from all responses.
+        Main use case is to break up multi-answer responses into individual answers,
+        but this method works on single-answer responses as well (it just does unnecessary work).
+        Substrings assumed to be individual answers if comma-separated (after removing round brackets and their
+        contents).
+
+        e.g. if response is "Europe (includes Russia), North America [NA] (includes Mexico, Central America,
+                Caribbean)", then "Europe" and "North America [NA]" are the two individual answers of the response,
+                and will be included in the returned array.
+
+        :return: Array
         """
         # remove round brackets' contents (https://stackoverflow.com/a/40621332)
         df[column].replace(r"\([^()]*\)", "", regex=True, inplace=True)
         answers = df[column].str.split(",", expand=True)  # split up answers
-        return answers.stack().str.strip().unique()  # make into Series, clean, and get all unique
+        return answers.stack().str.strip().unique().tolist()  # make into Series, clean, and get all unique
 
 
 class DataCleaner:
@@ -49,6 +57,7 @@ class DataCleaner:
              SONGS_COVER,
              JP_SERVER,
              FRANCHISE_PARTICIPATION,
+             SEIYUU,
              PLAY_STYLE,
              OTHER_GAMES_IDOL,
              OTHER_GAMES_RHYTHM]
