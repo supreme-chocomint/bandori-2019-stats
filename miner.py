@@ -4,7 +4,7 @@ import pandas as pd
 from functools import wraps
 
 from constants import *
-from helpers import DataCleaner
+from helpers import DataCleaner, ResponseParser
 
 
 def _can_export(f):
@@ -207,6 +207,22 @@ class AssociationMiner:
         table = self.mine(
             [BANDS_CHARA, REGION], [ALL_BANDS, values]
         ).search(one_of=values)
+        return Rules(table)
+
+    @_can_export
+    def mine_region_favorite_seiyuu(self):
+        """
+        Note: "I don't have a favorite seiyuu" is a possible answer that isn't ignored in mining.
+        Note: The "Other" answer for favorite seiyuu is ignored.
+        :return: Rules
+        """
+        df = DataCleaner.filter_region(self.df)
+        regions = df[REGION].unique().tolist()
+        seiyuu = ResponseParser.unique_answers(df, SEIYUU)
+        seiyuu.remove("Other")  # both regions and seiyuu have "Other" answer, so drop one of them
+        table = self.mine(
+            [REGION, SEIYUU], [regions, seiyuu]
+        ).search(one_of=regions)
         return Rules(table)
 
     def _generate_frequent_itemsets(
