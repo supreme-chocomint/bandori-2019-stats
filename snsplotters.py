@@ -11,17 +11,31 @@ class HeatMapPlotter:
     Makes heat map for demographic frequencies.
     """
 
-    def __init__(self, tsv_path):
+    def __init__(
+            self,
+            tsv_path,
+            export_to_csv=False
+    ):
         self.df = DataCleaner.prepare_data_frame(tsv_path)
+        self.export_to_csv = export_to_csv
 
-    def draw(self, x, y, df=None, normalize=None, fmt="g"):
+    def draw(
+            self,
+            x,
+            y,
+            df=None,
+            normalize=None,
+            fmt="g",
+            export_name=""
+    ):
         """
-        General function to plot heat maps.
+        General method to plot heat maps.
         :param x: x-axis column name
         :param y: y-axis column name
         :param df: the DataFrame to make a map on
         :param normalize: "x", "y", "both", or None; which axis to show normalization of counts along
         :param fmt: String; formatting to use, general 6-digit precision being default; see _plot_heat_map()
+        :param export_name: String; name of file to export with, if exporting enabled
         """
         if df is None:
             df = self.df
@@ -40,9 +54,15 @@ class HeatMapPlotter:
             None: None,
         }
 
-        counts = pd.crosstab(df[x], df[y], normalize=norm_arg_to_pd[normalize])
-        print(pd.crosstab(df[x], df[y]))
-        self._plot_heat_map(counts, border=norm_arg_to_border[normalize], fmt=fmt)
+        self._draw(
+            df,
+            x,
+            y,
+            normalize=norm_arg_to_pd[normalize],
+            border=norm_arg_to_border[normalize],
+            fmt=fmt,
+            export_name=export_name
+        )
 
     def draw_gender_vs_region(self):
         """
@@ -50,9 +70,9 @@ class HeatMapPlotter:
         """
         df = DataCleaner.filter_gender(self.df)
         df = DataCleaner.filter_region(df)
-        counts = pd.crosstab(df[REGION], df[GENDER], normalize="index")
-        print(pd.crosstab(df[REGION], df[GENDER]))
-        self._plot_heat_map(counts, border="horizontal")
+        self._draw(
+            df, REGION, GENDER, normalize="index", border="horizontal", export_name="gender-vs-region"
+        )
 
     def draw_age_vs_region(self):
         """
@@ -60,9 +80,9 @@ class HeatMapPlotter:
         """
         df = DataCleaner.filter_age(self.df)
         df = DataCleaner.filter_region(df)
-        counts = pd.crosstab(df[REGION], df[AGE], normalize="index")
-        print(pd.crosstab(df[REGION], df[AGE]))
-        self._plot_heat_map(counts, border="horizontal")
+        self._draw(
+            df, REGION, AGE, normalize="index", border="horizontal", export_name="age-vs-region"
+        )
 
     def draw_age_vs_gender(self):
         """
@@ -70,11 +90,42 @@ class HeatMapPlotter:
         """
         df = DataCleaner.filter_age(self.df)
         df = DataCleaner.filter_gender(df)
-        counts = pd.crosstab(df[AGE], df[GENDER], normalize="index")
-        print(pd.crosstab(df[AGE], df[GENDER]))
-        self._plot_heat_map(counts, border="horizontal")
+        self._draw(
+            df, AGE, GENDER, normalize="index", border="horizontal", export_name="age-vs-gender"
+        )
 
-    def _plot_heat_map(self, counts, cmap="BuGn", border=None, fmt=".2g"):
+    def _draw(
+            self,
+            df,
+            x,
+            y,
+            normalize,
+            border,
+            fmt=".2g",
+            export_name="export"
+    ):
+        """
+        Private, general method to create frequency table and plot.
+        Also exports to file, if applicable.
+        """
+        counts = pd.crosstab(df[x], df[y], normalize=normalize)
+        counts_raw = pd.crosstab(df[x], df[y]) if normalize else None
+        self._plot_heat_map(counts, border=border, fmt=fmt)
+
+        if self.export_to_csv:
+            if counts_raw is not None:
+                counts.to_csv(f"{export_name}.normalized.csv")
+                counts_raw.to_csv(f"{export_name}.raw.csv")
+            else:
+                counts.to_csv(f"{export_name}.csv")
+
+    def _plot_heat_map(
+            self,
+            counts,
+            cmap="BuGn",
+            border=None,
+            fmt=".2g"
+    ):
         """
         Draws heat map for frequency table.
         :param counts: DataFrame with counts in each cell
