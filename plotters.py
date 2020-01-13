@@ -1,3 +1,7 @@
+"""
+Plotters that only require matplotlib and pandas.
+"""
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
@@ -6,7 +10,7 @@ from constants import *
 from helpers import DataCleaner, ResponseParser
 
 
-class CountsPlotDisplay:
+class PandasPlotDisplay:
 
     def __init__(
             self,
@@ -44,12 +48,12 @@ class CountsPlotDisplay:
         self.annotation_size = annotation_size
 
 
-class CountsPlotter:
+class PandasPlotter:
     """
     Plots two dimensions against counts/proportions of people in the intersection of those dimensions.
     E.g. if the two dimensions are region and favorite characters, the y-axis will be the number of people
     with a specific character as a favorite and from a specific region, with the x-axis being either the
-    characters or the regions (depending on the CountsPlotDisplay's attributes).
+    characters or the regions (depending on the PandasPlotDisplay's attributes).
     """
 
     def __init__(self, tsv_path, export_to_csv=False):
@@ -58,7 +62,7 @@ class CountsPlotter:
         self.export_to_csv = export_to_csv
 
     def plot_music_band_by_age(self, display=None):
-        self.display = CountsPlotDisplay(
+        self.display = PandasPlotDisplay(
             kind="bar",
             title="Favorite Bands (Music) By Age Group",
             x_label="Band",
@@ -70,7 +74,7 @@ class CountsPlotter:
         self.display = None
 
     def plot_chara_band_by_age(self, display=None):
-        self.display = CountsPlotDisplay(
+        self.display = PandasPlotDisplay(
             kind="bar",
             title="Favorite Bands (Characters) By Age Group",
             x_label="Band",
@@ -82,7 +86,7 @@ class CountsPlotter:
         self.display = None
 
     def plot_music_band_by_region(self, display=None, show_all=True):
-        self.display = CountsPlotDisplay(
+        self.display = PandasPlotDisplay(
             kind="bar",
             title="Favorite Bands (Music) By Region",
             x_label="Band",
@@ -94,7 +98,7 @@ class CountsPlotter:
         self.display = None
 
     def plot_chara_band_by_region(self, display=None, show_all=True):
-        self.display = CountsPlotDisplay(
+        self.display = PandasPlotDisplay(
             kind="bar",
             title="Favorite Bands (Characters) By Region",
             x_label="Band",
@@ -106,7 +110,7 @@ class CountsPlotter:
         self.display = None
 
     def plot_music_band_by_gender(self, display=None):
-        self.display = CountsPlotDisplay(
+        self.display = PandasPlotDisplay(
             kind="bar",
             title="Favorite Bands (Music) By Gender",
             x_label="Band",
@@ -119,7 +123,7 @@ class CountsPlotter:
         self.display = None
 
     def plot_chara_band_by_gender(self, display=None):
-        self.display = CountsPlotDisplay(
+        self.display = PandasPlotDisplay(
             kind="bar",
             title="Favorite Bands (Characters) By Gender",
             x_label="Band",
@@ -132,7 +136,7 @@ class CountsPlotter:
         self.display = None
 
     def plot_play_style_by_age(self, display=None):
-        self.display = CountsPlotDisplay(
+        self.display = PandasPlotDisplay(
             kind="bar",
             title="Play Style By Age Group",
             x_label="Play Style",
@@ -151,7 +155,7 @@ class CountsPlotter:
         def sort(raw_counts, normalized_counts):
             return self.sort_regions(raw_counts, normalized_counts, data_has_all=show_all)
 
-        self.display = CountsPlotDisplay(
+        self.display = PandasPlotDisplay(
             kind="bar",
             title="Play Style By Region",
             x_label="Play Style",
@@ -167,7 +171,7 @@ class CountsPlotter:
         self.display = None
 
     def plot_play_style_by_gender(self, display=None):
-        self.display = CountsPlotDisplay(
+        self.display = PandasPlotDisplay(
             kind="bar",
             title="Play Style By Gender",
             x_label="Play Style",
@@ -183,7 +187,7 @@ class CountsPlotter:
         self.display = None
 
     def plot_participation_by_age(self, display=None):
-        self.display = CountsPlotDisplay(
+        self.display = PandasPlotDisplay(
             kind="bar",
             title="Franchise Participation By Age Group",
             x_label="Participation Methods",
@@ -202,7 +206,7 @@ class CountsPlotter:
         def sort(raw_counts, normalized_counts):
             return self.sort_regions(raw_counts, normalized_counts, data_has_all=show_all)
 
-        self.display = CountsPlotDisplay(
+        self.display = PandasPlotDisplay(
             kind="bar",
             title="Franchise Participation By Region",
             x_label="Participation Methods",
@@ -218,7 +222,7 @@ class CountsPlotter:
         self.display = None
 
     def plot_participation_by_gender(self, display=None):
-        self.display = CountsPlotDisplay(
+        self.display = PandasPlotDisplay(
             kind="bar",
             title="Franchise Participation By Gender",
             x_label="Participation Methods",

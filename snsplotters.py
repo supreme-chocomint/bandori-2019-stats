@@ -1,3 +1,7 @@
+"""
+Plotters that require seaborn, as well as matplotlib and pandas.
+"""
+
 import seaborn as sns
 import pandas as pd
 import matplotlib.pyplot as plt

@@ -1,4 +1,4 @@
-from plotters import CountsPlotter, CountsPlotDisplay, AssociationMetricPlotter
+from plotters import PandasPlotter, PandasPlotDisplay, AssociationMetricPlotter
 from miner import AssociationMiner
 from snsplotters import HeatMapPlotter
 from helpers import DataCleaner, ResponseParser
@@ -6,7 +6,7 @@ from constants import *
 
 
 def main():
-    plotter = CountsPlotter("data/responses.tsv", export_to_csv=True)
+    plotter = PandasPlotter("data/responses.tsv", export_to_csv=True)
     # plotter.plot_music_band_by_age()
     # plotter.plot_chara_band_by_age()
     # plotter.plot_music_band_by_region()
