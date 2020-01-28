@@ -14,4 +14,4 @@ If you'd rather just read code and inline documentation, start with `miner.py`, 
 
 ## Example Output
 
-See [here](https://github.com/supreme-chocomint/bandori-2019-stats/tree/master/output). All example output is created using the ready-to-use methods, so can be easily replicated.
+See [here](https://github.com/supreme-chocomint/bandori-2019-stats/tree/master/output). Most example output is created using the ready-to-use methods, so can be easily replicated.
