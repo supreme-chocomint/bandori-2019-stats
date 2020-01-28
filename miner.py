@@ -10,7 +10,7 @@ from helpers import DataCleaner, ResponseParser
 def _can_export(f):
     """
     Decorator for AssociationMiner methods that return Rules.
-    If AssociationMiner is set to export to Excel, then exporting occurs.
+    If AssociationMiner is set to export to CSV, then exporting occurs.
     :param f: Method
     :return: Method
     """
