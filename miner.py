@@ -267,7 +267,6 @@ class AssociationMiner:
     ):
         """
         Finds frequent itemsets.
-        FPGrowth algorithm used instead of Apriori because it can handle min_frequency=0.
         :param min_frequency: Float; threshold occurrence for a set to be considered "frequent"
         :return DataFrame
         """
@@ -316,7 +315,7 @@ class AssociationMiner:
         """
         Reduces a DataFrame to lists, where each list holds the values of the columns listed in column_list.
         :param df: DataFrame
-        :param column_list: A list of columns to _reduce to
+        :param column_list: A list of columns to reduce to
         :param column_values_list: A list parallel to column_list that lists values to look for in each column
         :return List of Lists
         """
